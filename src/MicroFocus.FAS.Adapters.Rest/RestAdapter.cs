@@ -13,25 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+using MicroFocus.FAS.Adapters.Rest.Client.Api;
+using MicroFocus.FAS.Adapters.Rest.Client.Model;
 using MicroFocus.FAS.AdapterSdk.Api;
+using AdapterDescriptor = MicroFocus.FAS.AdapterSdk.Api.AdapterDescriptor;
+using FailureDetails = MicroFocus.FAS.AdapterSdk.Api.FailureDetails;
+using RepositorySettingDefinition = MicroFocus.FAS.AdapterSdk.Api.RepositorySettingDefinition;
+using RetrieveFileListRequest = MicroFocus.FAS.AdapterSdk.Api.RetrieveFileListRequest;
 
 namespace MicroFocus.FAS.Adapters.Rest
 {
     internal class RestAdapter : IRepositoryAdapter
     {
-        public IAdapterDescriptor CreateDescriptor()
+        private readonly IAdapterApi _api;
+
+        public RestAdapter(IAdapterApi api)
         {
-            throw new NotImplementedException();
+            _api = api;
         }
 
-        public Task RetrieveFileListAsync(
+        public IAdapterDescriptor CreateDescriptor()
+        {
+            var restDescriptor = _api.AdapterDescriptorGet();
+            return new AdapterDescriptor(restDescriptor.AdapterType,
+                                         restDescriptor.PropertyDefinition.Select(pd => new RepositorySettingDefinition(pd.Name,
+                                                                                                                        TypeCode.String,
+                                                                                                                        pd.IsRequired,
+                                                                                                                        false)));
+        }
+
+        public async Task RetrieveFileListAsync(
             RetrieveFileListRequest request,
             IFileListResultsHandler handler,
             CancellationToken cancellationToken)
         {
-            _ = new Client.Model.RepositoryItem();
+            var configurationOptions = ConvertOptions(request.RepositoryProperties.ConfigurationOptions);
+            var repositoryOptions = ConvertOptions(request.RepositoryProperties.RepositoryOptions);
 
-            throw new NotImplementedException();
+            var data = await _api.RetrieveFileListPostAsync(new Client.Model.RetrieveFileListRequest(request.AdditionalFilter,
+                                                                                                     new RepositoryProperties(configurationOptions,
+                                                                                                                              repositoryOptions)),
+                                                            cancellationToken: cancellationToken);
+
+            foreach (var failureDetails in data.Failures)
+            {
+                await handler.RegisterFailureAsync(failureDetails.ItemLocation, new FailureDetails(failureDetails.Message));
+            }
         }
 
         public Task RetrieveFilesDataAsync(
@@ -40,6 +68,17 @@ namespace MicroFocus.FAS.Adapters.Rest
             CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
+        }
+
+        private static Dictionary<string, string> ConvertOptions(IOptionsProvider optionsProvider)
+        {
+            var result = new Dictionary<string, string>();
+            foreach (var optionName in optionsProvider.OptionNames)
+            {
+                result.Add(optionName, optionsProvider.GetOption(optionName));
+            }
+
+            return result;
         }
     }
 }

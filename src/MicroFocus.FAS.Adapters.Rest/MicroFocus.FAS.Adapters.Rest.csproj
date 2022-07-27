@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="MicroFocus.FAS.AdapterSdk.Api" Version="1.0.0-SNAPSHOT" />
-    <PackageReference Include="MicroFocus.FAS.Adapters.Rest.Client" Version="1.0.0-SNAPSHOT" />
+    <PackageReference Include="MicroFocus.FAS.Adapters.Rest.Client" Version="1.0.0-US477042Contract-SNAPSHOT" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
   </ItemGroup>
 </Project>
