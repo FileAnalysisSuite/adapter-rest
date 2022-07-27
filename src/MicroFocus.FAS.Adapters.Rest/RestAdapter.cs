@@ -55,10 +55,9 @@ namespace MicroFocus.FAS.Adapters.Rest
                                                                                                      new RepositoryProperties(configurationOptions,
                                                                                                                               repositoryOptions)),
                                                             cancellationToken: cancellationToken);
-
             foreach (var failureDetails in data.Failures)
             {
-                await handler.RegisterFailureAsync(failureDetails.ItemLocation, new FailureDetails(failureDetails.Message));
+                await handler.RegisterFailureAsync(failureDetails.ItemLocation, new FailureDetails(failureDetails.Message, failureDetails.Exceptions.Select(e => new Exception(e)).ToArray()));
             }
         }
 
