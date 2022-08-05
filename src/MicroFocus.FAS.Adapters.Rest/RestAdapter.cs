@@ -119,7 +119,7 @@ namespace MicroFocus.FAS.Adapters.Rest
                                                  itemMetadata.Size,
                                                  itemMetadata.CreatedTime,
                                                  itemMetadata.AccessedTime,
-                                                 itemMetadata.ModifiedTime,
+                                                 itemMetadata.ModifiedTime.Value,
                                                  itemMetadata.Version,
                                                  itemMetadata.AdditionalMetadata.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()));
         }
@@ -129,7 +129,12 @@ namespace MicroFocus.FAS.Adapters.Rest
             var result = new Dictionary<string, string>();
             foreach (var optionName in optionsProvider.OptionNames)
             {
-                result.Add(optionName, optionsProvider.GetOption(optionName));
+                var value = optionsProvider.GetOption(optionName);
+                if (value == null)
+                {
+                    throw new InvalidOperationException($"Option {optionName} value cannot be null.");
+                }
+                result.Add(optionName, value);
             }
 
             return result;
