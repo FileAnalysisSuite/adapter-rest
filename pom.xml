@@ -183,6 +183,23 @@
                             </arguments>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>exec-docfx-build</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docfx</executable>
+                            <arguments>
+                                <argument>publish</argument>
+                                <argument>src/MicroFocus.FAS.Adapters.Rest</argument>
+                                <argument>--configuration</argument>
+                                <argument>Release</argument>
+                                <argument>--no-build</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>

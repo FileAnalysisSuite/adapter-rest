@@ -19,12 +19,14 @@ using MicroFocus.FAS.Adapters.Rest.Client.Model;
 using MicroFocus.FAS.AdapterSdk.Api;
 using AdapterDescriptor = MicroFocus.FAS.AdapterSdk.Api.AdapterDescriptor;
 using FailureDetails = MicroFocus.FAS.AdapterSdk.Api.FailureDetails;
+using ItemMetadata = MicroFocus.FAS.AdapterSdk.Api.ItemMetadata;
+using RepositoryItem = MicroFocus.FAS.Adapters.Rest.Client.Model.RepositoryItem;
 using RepositorySettingDefinition = MicroFocus.FAS.AdapterSdk.Api.RepositorySettingDefinition;
 using RetrieveFileListRequest = MicroFocus.FAS.AdapterSdk.Api.RetrieveFileListRequest;
 
 namespace MicroFocus.FAS.Adapters.Rest
 {
-    internal class RestAdapter : IRepositoryAdapter
+    public class RestAdapter : IRepositoryAdapter
     {
         private readonly IAdapterApi _api;
 
@@ -32,6 +34,7 @@ namespace MicroFocus.FAS.Adapters.Rest
         {
             _api = api;
         }
+
 
         public IAdapterDescriptor CreateDescriptor()
         {
@@ -43,10 +46,7 @@ namespace MicroFocus.FAS.Adapters.Rest
                                                                                                                         false)));
         }
 
-        public async Task RetrieveFileListAsync(
-            RetrieveFileListRequest request,
-            IFileListResultsHandler handler,
-            CancellationToken cancellationToken)
+        public async Task RetrieveFileListAsync(RetrieveFileListRequest request, IFileListResultsHandler handler, CancellationToken cancellationToken)
         {
             var configurationOptions = ConvertOptions(request.RepositoryProperties.ConfigurationOptions);
             var repositoryOptions = ConvertOptions(request.RepositoryProperties.RepositoryOptions);
@@ -57,16 +57,71 @@ namespace MicroFocus.FAS.Adapters.Rest
                                                             cancellationToken: cancellationToken);
             foreach (var failureDetails in data.Failures)
             {
-                await handler.RegisterFailureAsync(failureDetails.ItemLocation, new FailureDetails(failureDetails.Message, failureDetails.Exceptions.Select(e => new Exception(e)).ToArray()));
+                await handler.RegisterFailureAsync(failureDetails.ItemLocation, new FailureDetails(failureDetails.Message));
+            }
+
+            foreach (var item in data.Items)
+            {
+                await handler.QueueItemAsync(ConvertMetadata(item.ItemMetadata), item.PartitionHint, cancellationToken);
             }
         }
 
-        public Task RetrieveFilesDataAsync(
-            RetrieveFilesDataRequest request,
-            IFileDataResultsHandler handler,
-            CancellationToken cancellationToken)
+        public async Task RetrieveFilesDataAsync(RetrieveFilesDataRequest request, IFileDataResultsHandler handler, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var configurationOptions = ConvertOptions(request.RepositoryProperties.ConfigurationOptions);
+            var repositoryOptions = ConvertOptions(request.RepositoryProperties.RepositoryOptions);
+            var repositoryItems = request.Items.Select(item => new RepositoryItem(item.ItemId, ConvertMetadata(item.Metadata))).ToList();
+            var data =
+                await _api.RetrieveFilesDataPostAsync(new RetrieveFileDataRequest(new RepositoryProperties(configurationOptions, repositoryOptions),
+                                                                                  repositoryItems),
+                                                      cancellationToken: cancellationToken);
+
+            await ProcessFailures(data.Failures, handler);
+
+            foreach (var item in data.Items)
+            {
+                await handler.QueueItemAsync(item.ItemId,
+                                             new FileContents(Convert.FromBase64String(item.FileContents)),
+                                             ConvertMetadata(item.Metadata),
+                                             cancellationToken);
+            }
+        }
+
+        private static async Task ProcessFailures(IEnumerable<Client.Model.FailureDetails> failures, IFailureRegistration failureRegistration)
+        {
+            foreach (var failureDetails in failures)
+            {
+                await failureRegistration.RegisterFailureAsync(failureDetails.ItemLocation, new FailureDetails(failureDetails.Message));
+            }
+        }
+
+        private static IItemMetadata ConvertMetadata(Client.Model.ItemMetadata restItemMetadata)
+        {
+            return new ItemMetadata(restItemMetadata.Name, restItemMetadata.ItemLocation)
+                   {
+                       Version = restItemMetadata._Version,
+                       Size = restItemMetadata.Size,
+                       Title = restItemMetadata.Title,
+                       AccessedTime = Convert.ToDateTime(restItemMetadata.AccessedTime),
+                       ModifiedTime = Convert.ToDateTime(restItemMetadata.ModifiedTime),
+                       CreatedTime = Convert.ToDateTime(restItemMetadata.CreatedTime),
+                       AdditionalMetadata =
+                           restItemMetadata.AdditionalMetadata.ToDictionary(d => d.Key,
+                                                                            d => (object)d.Value)
+                   };
+        }
+
+        private static Client.Model.ItemMetadata ConvertMetadata(IItemMetadata itemMetadata)
+        {
+            return new Client.Model.ItemMetadata(itemMetadata.ItemLocation,
+                                                 itemMetadata.Name,
+                                                 itemMetadata.Title,
+                                                 itemMetadata.Size,
+                                                 itemMetadata.CreatedTime,
+                                                 itemMetadata.AccessedTime,
+                                                 itemMetadata.ModifiedTime,
+                                                 itemMetadata.Version,
+                                                 itemMetadata.AdditionalMetadata.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()));
         }
 
         private static Dictionary<string, string> ConvertOptions(IOptionsProvider optionsProvider)

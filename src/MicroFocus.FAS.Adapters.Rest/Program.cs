@@ -13,13 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using MicroFocus.FAS.Adapters.Rest;
 
-IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices(services =>
-    {
-        services.AddHostedService<Worker>();
-    })
-    .Build();
+using System.Net;
+using MicroFocus.FAS.Adapters.Rest;
+using MicroFocus.FAS.Adapters.Rest.Client.Api;
+using MicroFocus.FAS.Adapters.Rest.Client.Client;
+
+var host = Host.CreateDefaultBuilder(args)
+               .ConfigureServices((hostBuilder, services) =>
+                                  {
+                                      var configurationSection = hostBuilder.Configuration.GetSection(nameof(RestAdapterSettings));
+                                      var restAdapterSettings = configurationSection.Get<RestAdapterSettings>();
+                                      var apiConfiguration = new Configuration();
+                                      apiConfiguration.BasePath = restAdapterSettings.BasePath;
+                                      if (restAdapterSettings.Proxy != null)
+                                      {
+                                          apiConfiguration.Proxy = new WebProxy(restAdapterSettings.Proxy.Address,
+                                                                                restAdapterSettings.Proxy.BypassOnLocal,
+                                                                                restAdapterSettings.Proxy.BypassList?.ToArray());
+                                          if (restAdapterSettings.Proxy.UserName != null)
+                                          {
+                                              apiConfiguration.Proxy.Credentials = new NetworkCredential(restAdapterSettings.Proxy.UserName,
+                                                                                                         restAdapterSettings.Proxy.Password);
+                                          }
+                                      }
+                                      services.AddSingleton<IAdapterApi>(new AdapterApi());
+                                      services.Configure<RestAdapterSettings>(configurationSection);
+                                      services.AddHostedService<Worker>();
+                                  })
+               .Build();
 
 await host.RunAsync();

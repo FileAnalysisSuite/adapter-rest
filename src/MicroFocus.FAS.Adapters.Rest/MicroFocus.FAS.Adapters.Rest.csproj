@@ -22,12 +22,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-MicroFocus.FAS.Adapters.Rest-C52B8C80-7CFA-41EE-8FB3-7EF737E7E4A8</UserSecretsId>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MicroFocus.FAS.Adapters.Rest.Client" Version="1.0.0-US477042Contract-SNAPSHOT-00014" />
     <PackageReference Include="MicroFocus.FAS.AdapterSdk.Api" Version="1.0.0-SNAPSHOT" />
-    <PackageReference Include="MicroFocus.FAS.Adapters.Rest.Client" Version="1.0.0-US477042Contract-SNAPSHOT" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
   </ItemGroup>
 </Project>
