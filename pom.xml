@@ -131,8 +131,6 @@
                                 <argument>restore</argument>
                                 <argument>--verbosity</argument>
                                 <argument>normal</argument>
-                                <argument>--no-cache</argument>
-                                <argument>--force</argument>
                             </arguments>
                         </configuration>
                     </execution>
