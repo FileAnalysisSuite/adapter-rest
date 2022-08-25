@@ -20,6 +20,7 @@ using MicroFocus.FAS.Adapters.Rest.Client.Model;
 using MicroFocus.FAS.AdapterSdk.Api;
 using Moq;
 using Objectivity.AutoFixture.XUnit2.AutoMoq.Attributes;
+using Xunit;
 using AdapterDescriptor = MicroFocus.FAS.Adapters.Rest.Client.Model.AdapterDescriptor;
 using RepositorySettingDefinition = MicroFocus.FAS.Adapters.Rest.Client.Model.RepositorySettingDefinition;
 using RetrieveFileListRequest = MicroFocus.FAS.AdapterSdk.Api.RetrieveFileListRequest;
@@ -136,15 +137,16 @@ namespace MicroFocus.FAS.Adapters.Rest.Tests
             foreach (var fileDataItem in fileDataResponse.Items)
             {
                 var bytes = Convert.FromBase64String(fileDataItem.FileContents);
-                fileDataResultsHandler.Verify(h => h.QueueItemAsync(fileDataItem.ItemId, It.Is<IFileContents>(c => Enumerable.SequenceEqual(c.ContentStream().ToByteArray(), bytes)),
-                                                                    It.Is<IItemMetadata>(i => i.Name == fileDataItem.Metadata.Name &&
-                                                                                              i.ItemLocation == fileDataItem.Metadata.ItemLocation &&
-                                                                                              i.Size == fileDataItem.Metadata.Size &&
-                                                                                              i.Title == fileDataItem.Metadata.Title &&
-                                                                                              i.AccessedTime == fileDataItem.Metadata.AccessedTime &&
-                                                                                              i.ModifiedTime == fileDataItem.Metadata.ModifiedTime &&
-                                                                                              i.CreatedTime == fileDataItem.Metadata.CreatedTime &&
-                                                                                              i.Version == fileDataItem.Metadata._Version), CancellationToken.None));
+                fileDataResultsHandler.Verify(h => h.QueueItemAsync(fileDataItem.ItemId, It.Is<Func<Stream>>(c => c().ToByteArray().SequenceEqual(bytes)),
+                                                                    It.Is<IItemMetadata>(i => i.Name == fileDataItem.ItemMetadata.Name &&
+                                                                                              i.ItemLocation == fileDataItem.ItemMetadata.ItemLocation &&
+                                                                                              i.Size == fileDataItem.ItemMetadata.Size &&
+                                                                                              i.Title == fileDataItem.ItemMetadata.Title &&
+                                                                                              i.AccessedTime == fileDataItem.ItemMetadata.AccessedTime &&
+                                                                                              i.ModifiedTime == fileDataItem.ItemMetadata.ModifiedTime &&
+                                                                                              i.CreatedTime == fileDataItem.ItemMetadata.CreatedTime &&
+                                                                                              i.Version == fileDataItem.ItemMetadata._Version),
+                                                                    It.IsAny<CancellationToken>()));
             }
         }
     }

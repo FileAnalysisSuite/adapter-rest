@@ -81,8 +81,8 @@ namespace MicroFocus.FAS.Adapters.Rest
             foreach (var item in data.Items)
             {
                 await handler.QueueItemAsync(item.ItemId,
-                                             new FileContents(Convert.FromBase64String(item.FileContents)),
-                                             ConvertMetadata(item.Metadata),
+                                             () => new MemoryStream(Convert.FromBase64String(item.FileContents)),
+                                             ConvertMetadata(item.ItemMetadata),
                                              cancellationToken);
             }
         }

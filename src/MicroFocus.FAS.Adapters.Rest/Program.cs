@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
+using System.Linq;
 using System.Net;
 using MicroFocus.FAS.Adapters.Rest;
 using MicroFocus.FAS.Adapters.Rest.Client.Api;
 using MicroFocus.FAS.Adapters.Rest.Client.Client;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 var host = Host.CreateDefaultBuilder(args)
                .ConfigureServices((hostBuilder, services) =>
