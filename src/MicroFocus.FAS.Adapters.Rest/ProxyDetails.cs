@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MicroFocus.FAS.Adapters.Rest

@@ -35,10 +35,10 @@ namespace MicroFocus.FAS.Adapters.Rest
             _api = api;
         }
 
-
         public IAdapterDescriptor CreateDescriptor()
         {
             var restDescriptor = _api.AdapterDescriptorGet();
+
             return new AdapterDescriptor(restDescriptor.AdapterType,
                                          restDescriptor.PropertyDefinition.Select(pd => new RepositorySettingDefinition(pd.Name,
                                                                                                                         TypeCode.String,
@@ -57,7 +57,7 @@ namespace MicroFocus.FAS.Adapters.Rest
                                                             cancellationToken: cancellationToken);
             foreach (var failureDetails in data.Failures)
             {
-                await handler.RegisterFailureAsync(failureDetails.ItemLocation, new FailureDetails(failureDetails.Message));
+                await handler.RegisterFailureAsync(failureDetails.ItemLocation, new AdapterSdk.Api.FailureDetails(failureDetails.Message));
             }
 
             foreach (var item in data.Items)
@@ -71,10 +71,9 @@ namespace MicroFocus.FAS.Adapters.Rest
             var configurationOptions = ConvertOptions(request.RepositoryProperties.ConfigurationOptions);
             var repositoryOptions = ConvertOptions(request.RepositoryProperties.RepositoryOptions);
             var repositoryItems = request.Items.Select(item => new RepositoryItem(item.ItemId, ConvertMetadata(item.Metadata))).ToList();
-            var data =
-                await _api.RetrieveFilesDataPostAsync(new RetrieveFileDataRequest(new RepositoryProperties(configurationOptions, repositoryOptions),
-                                                                                  repositoryItems),
-                                                      cancellationToken: cancellationToken);
+            var data = await _api.RetrieveFilesDataPostAsync(new RetrieveFileDataRequest(new RepositoryProperties(configurationOptions, repositoryOptions),
+                                                                                         repositoryItems),
+                                                             cancellationToken: cancellationToken);
 
             await ProcessFailures(data.Failures, handler);
 
@@ -134,6 +133,7 @@ namespace MicroFocus.FAS.Adapters.Rest
                 {
                     throw new InvalidOperationException($"Option {optionName} value cannot be null.");
                 }
+
                 result.Add(optionName, value);
             }
 

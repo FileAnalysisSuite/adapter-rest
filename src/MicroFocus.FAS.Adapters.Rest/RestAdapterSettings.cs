@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 namespace MicroFocus.FAS.Adapters.Rest
 {
     public class RestAdapterSettings
     {
         public string BasePath { get; set; }
-        public ProxyDetails? Proxy { get; set; }
 
+        public ProxyDetails? Proxy { get; set; }
     }
 }
