@@ -21,6 +21,7 @@ using AdapterDescriptor = MicroFocus.FAS.AdapterSdk.Api.AdapterDescriptor;
 using FailureDetails = MicroFocus.FAS.AdapterSdk.Api.FailureDetails;
 using ItemMetadata = MicroFocus.FAS.AdapterSdk.Api.ItemMetadata;
 using RepositoryItem = MicroFocus.FAS.Adapters.Rest.Client.Model.RepositoryItem;
+using RepositoryProperties = MicroFocus.FAS.Adapters.Rest.Client.Model.RepositoryProperties;
 using RepositorySettingDefinition = MicroFocus.FAS.AdapterSdk.Api.RepositorySettingDefinition;
 using RetrieveFileListRequest = MicroFocus.FAS.AdapterSdk.Api.RetrieveFileListRequest;
 
@@ -55,6 +56,7 @@ namespace MicroFocus.FAS.Adapters.Rest
                                                                                                      new RepositoryProperties(configurationOptions,
                                                                                                                               repositoryOptions)),
                                                             cancellationToken: cancellationToken);
+
             foreach (var failureDetails in data.Failures)
             {
                 await handler.RegisterFailureAsync(failureDetails.ItemLocation, new AdapterSdk.Api.FailureDetails(failureDetails.Message));
@@ -131,7 +133,7 @@ namespace MicroFocus.FAS.Adapters.Rest
                 var value = optionsProvider.GetOption(optionName);
                 if (value == null)
                 {
-                    throw new InvalidOperationException($"Option {optionName} value cannot be null.");
+                    continue;
                 }
 
                 result.Add(optionName, value);

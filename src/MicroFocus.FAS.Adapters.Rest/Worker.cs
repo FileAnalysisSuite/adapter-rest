@@ -14,23 +14,37 @@
  * limitations under the License.
  */
 
+using MicroFocus.FAS.AdapterSdk.Api;
+
 namespace MicroFocus.FAS.Adapters.Rest
 {
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
+        private readonly IProcessingEngineFactory _engineFactory;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, IProcessingEngineFactory engineFactory)
         {
             _logger = logger;
+            _engineFactory = engineFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            stoppingToken.Register(() => _logger.LogInformation("Worker - cancellation requested, service will stop"));
+            _logger.LogInformation("Starting Worker Service...");
+            try
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await Task.Delay(1000, stoppingToken);
+                var processingEngine = _engineFactory.CreateEngine();
+
+                await processingEngine.ExecuteAsync(stoppingToken).ConfigureAwait(false);
+
+                _logger.LogInformation("Stopping worker service");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception caught during execution");
+                throw;
             }
         }
     }

@@ -18,6 +18,10 @@ using System.Net;
 using MicroFocus.FAS.Adapters.Rest;
 using MicroFocus.FAS.Adapters.Rest.Client.Api;
 using MicroFocus.FAS.Adapters.Rest.Client.Client;
+using MicroFocus.FAS.AdapterSdk.Engine.Runtime;
+using MicroFocus.FAS.AdapterSdk.Runtime.NetCore;
+
+AppInitializer.Initialize();
 
 var host = Host.CreateDefaultBuilder(args)
                .ConfigureServices((hostBuilder, services) =>
@@ -38,10 +42,12 @@ var host = Host.CreateDefaultBuilder(args)
                                           }
                                       }
 
-                                      services.AddSingleton<IAdapterApi>(new AdapterApi());
-                                      services.Configure<RestAdapterSettings>(configurationSection);
-                                      services.AddHostedService<Worker>();
+                                      services.ConfigureAdapterSdk<RestAdapter>(hostBuilder.Configuration, "RESTAdapter")
+                                              .AddSingleton<IAdapterApi>(new AdapterApi(apiConfiguration))
+                                              .Configure<RestAdapterSettings>(configurationSection)
+                                              .AddHostedService<Worker>();
                                   })
+               .UseWindowsService()
                .Build();
 
 await host.RunAsync();
