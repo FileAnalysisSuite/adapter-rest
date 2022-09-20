@@ -23,6 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{A3
 		nuget.config = nuget.config
 		README.md = README.md
 		release-notes-1.0.0.md = release-notes-1.0.0.md
+		.gitignore = .gitignore
 	EndProjectSection
 EndProject
 Global

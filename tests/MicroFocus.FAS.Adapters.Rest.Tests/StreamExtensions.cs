@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-using System.IO;
-
 namespace MicroFocus.FAS.Adapters.Rest.Tests
 {
     public static class StreamExtensions

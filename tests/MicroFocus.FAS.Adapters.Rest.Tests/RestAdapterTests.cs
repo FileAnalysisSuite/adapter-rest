@@ -78,7 +78,8 @@ namespace MicroFocus.FAS.Adapters.Rest.Tests
             foreach (var failureDetails in fileListResponse.Failures)
             {
                 fileListResultsHandler.Verify(h => h.RegisterFailureAsync(failureDetails.ItemLocation,
-                                                                          It.Is<IFailureDetails>(f => f.Message == failureDetails.Message)));
+                                                                          It.Is<IFailureDetails>(f => f.Message == failureDetails.Message),
+                                                                          CancellationToken.None));
             }
 
             foreach (var fileListItem in fileListResponse.Items)
@@ -110,19 +111,18 @@ namespace MicroFocus.FAS.Adapters.Rest.Tests
                 item.FileContents = Convert.ToBase64String(contentBytes);
             }
             adapterApi.Setup(api =>
-
-                                 api.RetrieveFilesDataPostAsync(It.Is<Client.Model.RetrieveFileDataRequest>(req =>
-                                                                                                                       req.Items.All(item =>
-                                                                                                                                         fileDataRequest.Items.Any(i =>
-                                                                                                                                                                       i.ItemId == item.ItemId &&
-                                                                                                                                                                       i.Metadata.Name == item.Metadata.Name &&
-                                                                                                                                                                       i.Metadata.ItemLocation == item.Metadata.ItemLocation &&
-                                                                                                                                                                       i.Metadata.Size == item.Metadata.Size &&
-                                                                                                                                                                       i.Metadata.Title == item.Metadata.Title &&
-                                                                                                                                                                       i.Metadata.AccessedTime == item.Metadata.AccessedTime &&
-                                                                                                                                                                       i.Metadata.ModifiedTime == item.Metadata.ModifiedTime &&
-                                                                                                                                                                       i.Metadata.CreatedTime == item.Metadata.CreatedTime &&
-                                                                                                                                                                       i.Metadata.Version == item.Metadata._Version))), 0, CancellationToken.None)
+                             api.RetrieveFilesDataPostAsync(It.Is<RetrieveFileDataRequest>(req =>
+                                                                                               req.Items.All(item =>
+                                                                                                                 fileDataRequest.Items.Any(i =>
+                                                                                                                                               i.ItemId == item.ItemId &&
+                                                                                                                                               i.Metadata.Name == item.Metadata.Name &&
+                                                                                                                                               i.Metadata.ItemLocation == item.Metadata.ItemLocation &&
+                                                                                                                                               i.Metadata.Size == item.Metadata.Size &&
+                                                                                                                                               i.Metadata.Title == item.Metadata.Title &&
+                                                                                                                                               i.Metadata.AccessedTime == item.Metadata.AccessedTime &&
+                                                                                                                                               i.Metadata.ModifiedTime == item.Metadata.ModifiedTime &&
+                                                                                                                                               i.Metadata.CreatedTime == item.Metadata.CreatedTime &&
+                                                                                                                                               i.Metadata.Version == item.Metadata._Version))), 0, CancellationToken.None)
 
                              ).ReturnsAsync(fileDataResponse);
 
@@ -131,7 +131,8 @@ namespace MicroFocus.FAS.Adapters.Rest.Tests
             foreach (var failureDetails in fileDataResponse.Failures)
             {
                 fileDataResultsHandler.Verify(h => h.RegisterFailureAsync(failureDetails.ItemLocation,
-                                                                          It.Is<IFailureDetails>(f => f.Message == failureDetails.Message)));
+                                                                          It.Is<IFailureDetails>(f => f.Message == failureDetails.Message),
+                                                                          CancellationToken.None));
             }
 
             foreach (var fileDataItem in fileDataResponse.Items)
