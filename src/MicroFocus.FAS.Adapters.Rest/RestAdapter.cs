@@ -42,9 +42,7 @@ namespace MicroFocus.FAS.Adapters.Rest
 
             return new AdapterDescriptor(restDescriptor.AdapterType,
                                          restDescriptor.PropertyDefinition.Select(pd => new RepositorySettingDefinition(pd.Name,
-                                                                                                                        TypeCode.String,
-                                                                                                                        pd.IsRequired,
-                                                                                                                        false)));
+                                                                                                                        pd.IsRequired)));
         }
 
         public async Task RetrieveFileListAsync(RetrieveFileListRequest request, IFileListResultsHandler handler, CancellationToken cancellationToken)
@@ -59,7 +57,7 @@ namespace MicroFocus.FAS.Adapters.Rest
 
             foreach (var failureDetails in data.Failures)
             {
-                await handler.RegisterFailureAsync(failureDetails.ItemLocation, new AdapterSdk.Api.FailureDetails(failureDetails.Message));
+                await handler.RegisterFailureAsync(failureDetails.ItemLocation, new FailureDetails(failureDetails.Message), cancellationToken);
             }
 
             foreach (var item in data.Items)
@@ -77,7 +75,7 @@ namespace MicroFocus.FAS.Adapters.Rest
                                                                                          repositoryItems),
                                                              cancellationToken: cancellationToken);
 
-            await ProcessFailures(data.Failures, handler);
+            await ProcessFailures(data.Failures, handler, cancellationToken);
 
             foreach (var item in data.Items)
             {
@@ -88,11 +86,13 @@ namespace MicroFocus.FAS.Adapters.Rest
             }
         }
 
-        private static async Task ProcessFailures(IEnumerable<Client.Model.FailureDetails> failures, IFailureRegistration failureRegistration)
+        private static async Task ProcessFailures(IEnumerable<Client.Model.FailureDetails> failures,
+                                                  IFailureRegistration failureRegistration,
+                                                  CancellationToken cancellationToken)
         {
             foreach (var failureDetails in failures)
             {
-                await failureRegistration.RegisterFailureAsync(failureDetails.ItemLocation, new FailureDetails(failureDetails.Message));
+                await failureRegistration.RegisterFailureAsync(failureDetails.ItemLocation, new FailureDetails(failureDetails.Message), cancellationToken);
             }
         }
 
@@ -103,9 +103,9 @@ namespace MicroFocus.FAS.Adapters.Rest
                        Version = restItemMetadata._Version,
                        Size = restItemMetadata.Size,
                        Title = restItemMetadata.Title,
-                       AccessedTime = Convert.ToDateTime(restItemMetadata.AccessedTime),
-                       ModifiedTime = Convert.ToDateTime(restItemMetadata.ModifiedTime),
-                       CreatedTime = Convert.ToDateTime(restItemMetadata.CreatedTime),
+                       AccessedTime = restItemMetadata.AccessedTime,
+                       ModifiedTime = restItemMetadata.ModifiedTime,
+                       CreatedTime = restItemMetadata.CreatedTime,
                        AdditionalMetadata =
                            restItemMetadata.AdditionalMetadata.ToDictionary(d => d.Key,
                                                                             d => (object)d.Value)
@@ -120,7 +120,7 @@ namespace MicroFocus.FAS.Adapters.Rest
                                                  itemMetadata.Size,
                                                  itemMetadata.CreatedTime,
                                                  itemMetadata.AccessedTime,
-                                                 itemMetadata.ModifiedTime.Value,
+                                                 itemMetadata.ModifiedTime,
                                                  itemMetadata.Version,
                                                  itemMetadata.AdditionalMetadata.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()));
         }
