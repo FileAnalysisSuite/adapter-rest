@@ -28,8 +28,10 @@ var host = Host.CreateDefaultBuilder(args)
                                   {
                                       var configurationSection = hostBuilder.Configuration.GetSection(nameof(RestAdapterSettings));
                                       var restAdapterSettings = configurationSection.Get<RestAdapterSettings>();
-                                      var apiConfiguration = new Configuration();
-                                      apiConfiguration.BasePath = restAdapterSettings.BasePath;
+                                      var apiConfiguration = new Configuration
+                                                             {
+                                                                 BasePath = restAdapterSettings.BasePath
+                                                             };
                                       if (restAdapterSettings.Proxy != null)
                                       {
                                           apiConfiguration.Proxy = new WebProxy(restAdapterSettings.Proxy.Address,
