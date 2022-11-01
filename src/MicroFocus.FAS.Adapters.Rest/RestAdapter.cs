@@ -66,7 +66,7 @@ namespace MicroFocus.FAS.Adapters.Rest
             }
         }
 
-        public async Task RetrieveFilesDataAsync(RetrieveFilesDataRequest request, IFileDataResultsHandler handler, CancellationToken cancellationToken)
+        public async Task RetrieveFilesDataAsync(RepositoryFilesRequest request, IFileDataResultsHandler handler, CancellationToken cancellationToken)
         {
             var configurationOptions = ConvertOptions(request.RepositoryProperties.ConfigurationOptions);
             var repositoryOptions = ConvertOptions(request.RepositoryProperties.RepositoryOptions);

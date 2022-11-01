@@ -24,7 +24,6 @@ using Xunit;
 using AdapterDescriptor = MicroFocus.FAS.Adapters.Rest.Client.Model.AdapterDescriptor;
 using RepositorySettingDefinition = MicroFocus.FAS.Adapters.Rest.Client.Model.RepositorySettingDefinition;
 using RetrieveFileListRequest = MicroFocus.FAS.AdapterSdk.Api.RetrieveFileListRequest;
-using RetrieveFilesDataRequest = MicroFocus.FAS.AdapterSdk.Api.RetrieveFilesDataRequest;
 
 namespace MicroFocus.FAS.Adapters.Rest.Tests
 {
@@ -101,7 +100,7 @@ namespace MicroFocus.FAS.Adapters.Rest.Tests
         [AutoMockData]
         public async Task RetrieveFileDataAsync_should_call_api_and_queue_results([Frozen] Mock<IAdapterApi> adapterApi,
                                                                                   [Frozen] Mock<IFileDataResultsHandler> fileDataResultsHandler,
-                                                                                  RetrieveFilesDataRequest fileDataRequest,
+                                                                                  RepositoryFilesRequest fileDataRequest,
                                                                                   RetrieveFileDataResponse fileDataResponse,
                                                                                   byte[] contentBytes,
                                                                                   RestAdapter sut)
